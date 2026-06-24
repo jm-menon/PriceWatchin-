@@ -39,7 +39,17 @@ async def get_products():
 @router.get("/{product_id}", response_model=Product)
 async def get_product(product_id: str):
     try:
-        product= next((p for p in PRODUCT_RESULT if p["id"]==product_id), p["price"]==random.randint(-500, 500)+p["price"], None)
+        product = next(
+            (
+                {
+                    **p,
+                    "price": p["price"] + random.randint(-500, 500)
+                }
+                for p in PRODUCT_RESULT
+                if p["id"] == product_id
+            ),
+            None
+    )
         if product is None:
             raise HTTPException(status_code=404, detail="Product not found!")
         return product
