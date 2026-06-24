@@ -14,8 +14,10 @@ def load_products_get()-> List[dict]:
         
         with open(file_path, "r") as file:
             products= json.load(file)
-            if isinstance(products, List):
+            if isinstance(products, List): #standard expection is list, just gonna add dictionary with "product" for the sake of making it robust
                 return products
+            elif isinstance(products, dict) and "product" in products:
+                return products["products"]
             else:
                 return []   
     except FileNotFoundError:
@@ -30,3 +32,13 @@ PRODUCT_RESULT= load_products_get()
 @router.get("/", response_model=List[Product])
 async def get_products():
     return PRODUCT_RESULT
+
+@router.get("/{product_id}", response_model=Product)
+async def get_product(product_id: str):
+    try:
+        product= next((p for p in PRODUCT_RESULT if p["id"]==product_id), None)
+        if product is None:
+            raise HTTPException(status_code=404, detail="Product not found!")
+        return product
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Server error: Failed to retrieve product")
