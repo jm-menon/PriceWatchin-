@@ -3,6 +3,8 @@ from .models import Product
 from typing import List
 import json
 import os
+import random
+import asyncio
 
 router= APIRouter()
 
@@ -31,10 +33,16 @@ PRODUCT_RESULT= load_products_get()
 
 @router.get("/", response_model=List[Product])
 async def get_products():
+    await asyncio.sleep(
+        random.uniform(0.5, 3.0)
+    )
     return PRODUCT_RESULT
 
 @router.get("/{product_id}", response_model=Product)
 async def get_product(product_id: str):
+    await asyncio.sleep(
+        random.uniform(0.5, 2.0)
+    )
     try:
         product= next((p for p in PRODUCT_RESULT if p["id"]==product_id), None)
         if product is None:
