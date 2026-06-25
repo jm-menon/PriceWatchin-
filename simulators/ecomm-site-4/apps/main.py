@@ -6,11 +6,11 @@ app = FastAPI(title="E-commerce Site1 API",
               description="API for E-commerce Site1", 
               version="1.0.0")
 
-app.include_router(product_router, prefix="/products")
+app.include_router(product_router, prefix="/products-site-4")
 
 @app.get("/health")
 async def health_check():
     return {"status": "healthy!"}
 
 if __name__== "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8004)

@@ -1,0 +1,23 @@
+[
+    {
+        "id": "s4p1",
+        "name": "Product 1 from Site 4",
+        "description": "Description for Product 1 from Site 4",
+        "price": 19.99,
+        "stock": 100
+    },
+    {
+        "id": "s4p2",
+        "name": "Product 2 from Site 4",
+        "description": "Description for Product 2 from Site 4",
+        "price": 29.99,
+        "stock": 50
+    },
+    {
+        "id": "s4p3",
+        "name": "Product 3 from Site 4",
+        "description": "Description for Product 3 from Site 4",
+        "price": 39.99,
+        "stock": 75  
+    }
+]
