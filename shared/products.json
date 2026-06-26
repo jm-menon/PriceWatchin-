@@ -1,0 +1,27 @@
+[
+  {
+    "product_name": "iPhone 16",
+    "category": "Mobile",
+    "base_price": 79999
+  },
+  {
+    "product_name": "Samsung Galaxy S26",
+    "category": "Mobile",
+    "base_price": 72999
+  },
+  {
+    "product_name": "Google Pixel 11",
+    "category": "Mobile",
+    "base_price": 69999
+  },
+  {
+    "product_name": "MacBook Air M5",
+    "category": "Laptop",
+    "base_price": 119999
+  },
+  {
+    "product_name": "Dell XPS 15",
+    "category": "Laptop",
+    "base_price": 139999
+  }
+]
