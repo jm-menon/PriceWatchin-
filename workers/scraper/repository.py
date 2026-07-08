@@ -1,0 +1,39 @@
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declerative_base
+import os
+import dotenv
+
+env= dotenv.load_dotenv()
+DATABASE_URL= os.getenv("DATABASE_URL")
+
+engine= create_engine(DATABASE_URL)
+Session= sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def get_all_products():
+    session= Session()
+    try:
+        rows= session.execute("select product_id, product_name from products")
+        return rows.fetchall()
+    except Exception as e:
+        print(f"Error fetching products: {e}")
+
+def get_all_vendors():
+    session=Session()
+    try:
+        rows= session.execute("select vendor_id, vendor_name, base_price from vendors")
+        return rows.fetchall()
+    except Exception as e:
+        print(f"Error fetching vendors: {e}")
+
+def write_price(product_id, vendor_id, price):
+    session=Session()
+    try:
+        session.execute("insert into price_history (product_id, vendor_id, price) values (:product_id, :vendor_id, :price)",{
+            "product_id": product_id,
+            "vendor_id": vendor_id,
+            "price": price
+        })
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        print(f"Error writing price: {e}")
