@@ -1,5 +1,7 @@
 from models import ScrapedPrice
 
+
+#i could potentially normalize the data separately for each simulator depending on the ds of each simulator, but for now i will just normalize the data in a single function
 def normalize_data(data: dict, vendor_id_data):
     if data.size()==0:
         return None
