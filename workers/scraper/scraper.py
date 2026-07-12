@@ -1,4 +1,4 @@
-from clients import fetch_product
+from clients import fetch_product, health_check
 from repository import get_all_products, get_all_vendors, write_price
 from normalizers import normalize_data
 
@@ -15,6 +15,10 @@ def scrape():
         if not products:
             print(f"No products found for vendor {vendor_id}.")
             continue
+
+        if(health_check(base_url)==False):
+                    print(f"Health check failed for vendor {vendor_id}. Skipping products from this vendor.")
+                    continue
 
         for product in products:
             product_id= product.product_id
