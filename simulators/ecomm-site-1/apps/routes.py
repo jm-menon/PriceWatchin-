@@ -2,8 +2,6 @@ from fastapi import APIRouter, HTTPException, Depends
 from .models import Product
 from typing import List
 from sqlalchemy.orm import Session
-import json
-import os
 from .database import get_db, get_all_items, get_item_id
 
 router= APIRouter()

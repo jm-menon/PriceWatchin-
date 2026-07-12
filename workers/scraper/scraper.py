@@ -19,20 +19,22 @@ def scrape():
         if(health_check(base_url)==False):
                     print(f"Health check failed for vendor {vendor_id}. Skipping products from this vendor.")
                     continue
-
+        print("test1")
         for product in products:
             product_id= product.product_id
+            print("test2")
             try:
+                print("test3")
                 data= fetch_product(base_url, product_id, vendor_id)
-                #print(1)
+                print(1)
                 normalized_data= normalize_data(data, vendor_id)
-                #print(2)
+                print(2)
                 product_id= normalized_data.product_id
-                #print(product_id)
+                print(product_id)
                 vendor_id= normalized_data.vendor_id
-                #print(vendor_id)
+                print(vendor_id)
                 price= normalized_data.price
-                #print(price, " done")
+                print(price, " done")
                 write_price(product_id, vendor_id, price)
                 print(f"Scraped product {product_id} from vendor {vendor_id} with price {price}.")
             except Exception as e:

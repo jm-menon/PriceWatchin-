@@ -1,0 +1,100 @@
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: pricewatch
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  site1:
+
+    build:
+      context: ./simulators/ecomm-site-1
+
+    container_name: site1
+
+    ports:
+      - "8001:8001"
+
+    env_file:
+      - .env
+
+    depends_on:
+      - postgres
+
+  site2:
+
+    build:
+      context: ./simulators/ecomm-site-2
+
+    container_name: site2
+
+    ports:
+      - "8002:8002"
+
+    env_file:
+      - .env
+
+    depends_on:
+      - postgres
+
+  site3:
+
+    build:
+      context: ./simulators/ecomm-site-3
+
+    container_name: site3
+
+    ports:
+      - "8003:8003"
+
+    env_file:
+      - .env
+
+    depends_on:
+      - postgres
+
+  site4:
+
+    build:
+      context: ./simulators/ecomm-site-4
+
+    container_name: site4
+
+    ports:
+      - "8004:8004"
+
+    env_file:
+      - .env
+
+    depends_on:
+      - postgres
+
+  site5:
+
+    build:
+      context: ./simulators/ecomm-site-5
+
+    container_name: site5
+
+    ports:
+      - "8005:8005"
+
+    env_file:
+      - .env
+
+    depends_on:
+      - postgres
+volumes:
+  postgres_data:
