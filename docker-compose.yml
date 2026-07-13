@@ -3,7 +3,6 @@ services:
   postgres:
     image: postgres:16
     container_name: postgres
-
     restart: unless-stopped
 
     environment:
@@ -17,35 +16,31 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  site1:
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d pricewatch"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
+  site1:
     build:
       context: ./simulators/ecomm-site-1
-
     container_name: site1
-
     ports:
       - "8001:8001"
-
     env_file:
       - .env
-
     depends_on:
       - postgres
 
   site2:
-
     build:
       context: ./simulators/ecomm-site-2
-
     container_name: site2
-
     ports:
       - "8002:8002"
-
     env_file:
       - .env
-
     depends_on:
       - postgres
 
@@ -82,19 +77,34 @@ services:
       - postgres
 
   site5:
-
     build:
       context: ./simulators/ecomm-site-5
-
     container_name: site5
-
     ports:
       - "8005:8005"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+  # ================== NEW SCRAPPER ==================
+  scrapper:
+    build:
+      context: ./workers/scraper           
+      dockerfile: Dockerfile
+
+    container_name: scrapper
+    restart: unless-stopped
 
     env_file:
       - .env
 
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy  
+
+    command: ["sh", "-c", "sleep 5 && python main.py"]
+    # ================================================
+
 volumes:
   postgres_data:
