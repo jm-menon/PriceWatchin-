@@ -125,7 +125,7 @@ services:
     command: >
       sh -c "
         python scripts/seed_products.py &&
-        python scripts/seed_vendors.py
+        python scripts/seed_vendor.py
         "
 
 volumes:

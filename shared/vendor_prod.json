@@ -1,0 +1,22 @@
+[
+  {
+    "vendor_name": "Site1",
+    "base_url": "http://site1:8001"
+  },
+  {
+    "vendor_name": "Site2",
+    "base_url": "http://site2:8002"
+  },
+  {
+    "vendor_name": "Site3",
+    "base_url": "http://site3:8003"
+  },
+  {
+    "vendor_name": "Site4",
+    "base_url": "http://site4:8004"
+  },
+  {
+    "vendor_name": "Site5",
+    "base_url": "http://site5:8005"
+  }
+]

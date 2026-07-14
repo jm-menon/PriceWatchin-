@@ -6,7 +6,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-VENDORS_FILE = BASE_DIR / "shared" / "vendor.json"
+VENDORS_FILE = BASE_DIR / "shared" / "vendor_prod.json"
 
 load_dotenv()
 
