@@ -2,6 +2,11 @@ import json
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+PRODUCTS_FILE = BASE_DIR / "shared" / "products.json"
 
 load_dotenv()
 
@@ -15,7 +20,7 @@ query = os.getenv("query_seed_products")
 if not query:
     raise ValueError("query_seed_products not found in .env")
 
-with open("../shared/products.json", encoding="utf-8") as f:
+with open(PRODUCTS_FILE, encoding="utf-8") as f:
     products = json.load(f)
 
 print(f"Loaded {len(products)} products from JSON.")

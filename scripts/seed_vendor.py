@@ -2,6 +2,11 @@ import json
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+VENDORS_FILE = BASE_DIR / "shared" / "vendor.json"
 
 load_dotenv()
 
@@ -15,7 +20,7 @@ query = os.getenv("query_seed_vendor")
 if not query:
     raise ValueError("query_seed_vendor not found in .env")
 
-with open("../shared/vendor.json", encoding="utf-8") as f:   # Adjust path if needed
+with open(VENDORS_FILE, encoding="utf-8") as f:   # Adjust path if needed
     vendors = json.load(f)
 
 print(f"Loaded {len(vendors)} vendors from JSON.")

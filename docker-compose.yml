@@ -15,6 +15,7 @@ services:
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d pricewatch"]
@@ -87,7 +88,6 @@ services:
     depends_on:
       - postgres
 
-  # ================== NEW SCRAPPER ==================
   scrapper:
     build:
       context: ./workers/scraper           
@@ -102,9 +102,31 @@ services:
     depends_on:
       postgres:
         condition: service_healthy  
+      seed:
+        condition: service_completed_successfully
 
     command: ["sh", "-c", "sleep 5 && python main.py"]
-    # ================================================
+
+  seed:
+
+    build:
+      context: .
+      dockerfile: scripts/Dockerfile
+
+    container_name: seed
+
+    env_file:
+      - .env
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    command: >
+      sh -c "
+        python scripts/seed_products.py &&
+        python scripts/seed_vendors.py
+        "
 
 volumes:
   postgres_data:
