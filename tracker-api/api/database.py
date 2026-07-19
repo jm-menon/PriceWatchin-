@@ -1,17 +1,17 @@
 #connecting to the database
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 load_dotenv()
+DATABASE_URL= os.getenv("DATABASE_URL")
 
-database_url= os.getenv("DATABASE_URL")
+engine= create_engine(DATABASE_URL, echo=True, future=True)
 
-engine= create_engine(database_url)
-
-SessionLocal= sessionmaker(
-    bind=engine,
-    autocommit=False,
-    autoflush=False
-)
+def get_db():
+    db= Session(engine)
+    try:
+        yield db
+    finally:
+        db.close()

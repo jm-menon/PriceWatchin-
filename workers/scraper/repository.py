@@ -37,3 +37,25 @@ def write_price(product_id, vendor_id, price):
     except Exception as e:
         session.rollback()
         print(f"Error writing price: {e}")
+
+def history_vendor_product(vendor_id, product_id):
+    session= Session()
+    try:
+        rows= session.execute(text("select price from price_history where vendor_id= :vendor_id and product_id= :product_id order by created at desc"),{
+            "vendor_id": vendor_id,
+            "product_id": product_id
+        })
+        return rows.fetchall()
+    except Exception as e:
+        print(f"Error fetching vendor history: {e}")
+
+
+def best_buy(product_id):
+    session= Session()
+    try:
+        rows= session.execute(text("select vendor_id, price, product_id from price_history where product_id= :product_id and price=(select min(price) from price_history where product_id= :product_id)"),{
+            "product_id": product_id
+        })
+        return rows.fetchall()
+    except Exception as e:
+        print(f"Error fetching best buy: {e}")

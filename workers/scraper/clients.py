@@ -20,3 +20,15 @@ def fetch_product(base_url, product_id, vendor_id):
     response.raise_for_status()
 
     return response.json()
+
+def fetch_history(vendor_id, product_id):
+    url = f"http://localhost:8006/history/{vendor_id}/{product_id}"
+    print(f"Fetching history from URL: {url}")
+    response = requests.get(
+        url,
+        timeout=5
+    )
+    print(response)
+    response.raise_for_status()
+
+    return response.json()
