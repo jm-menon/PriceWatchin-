@@ -28,7 +28,7 @@ async def get_cheapest_product_api(product_id: int, db: Session=Depends(get_db))
         raise HTTPException(status_code=500, detail="Server error: Failed to retrieve product")
     
 
-@router.get("/product_vendor_history/{product_id}/{vendor_id}", response_model=PriceHistoryResponse)
+@router.get("/product_vendor_history/{product_id}/{vendor_id}", response_model=list[PriceHistoryResponse])
 async def get_product_vendor_history_api(product_id: int, vendor_id: int, db: Session=Depends(get_db)):
     try:
         product_vendor_history= get_product_vendor_history(product_id, vendor_id, db)
