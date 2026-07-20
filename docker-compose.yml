@@ -128,5 +128,29 @@ services:
         python scripts/seed_vendor.py
         "
 
+  tracker:
+      build:
+        context: ./tracker-api/api
+        dockerfile: Dockerfile
+
+      container_name: tracker
+
+      restart: unless-stopped
+
+      ports:
+        - "8007:8007"
+
+      env_file:
+       - .env
+
+      depends_on:
+          postgres:
+            condition: service_healthy
+          seed:
+            condition: service_completed_successfully
+      command: >
+          sh -c "
+          sleep 5 &&
+          uvicorn main:app --host 0.0.0.0 --port 8007"
 volumes:
   postgres_data:

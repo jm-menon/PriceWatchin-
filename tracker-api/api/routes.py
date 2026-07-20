@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
-from .models import PriceHistoryResponse, CheapestProductResponse
+from models import PriceHistoryResponse, CheapestProductResponse
 from typing import List
 from sqlalchemy.orm import Session
-from .repository import get_price_history, get_cheapest_product, get_product_vendor_history
-from .database import get_db
+from repository import get_price_history, get_cheapest_product, get_product_vendor_history
+from database import get_db
 
 router= APIRouter()
 

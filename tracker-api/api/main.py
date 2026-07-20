@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .routes import router as product_router
+from routes import router as product_router
 import uvicorn
 
 app = FastAPI(title="Tracker API", 
