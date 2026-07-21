@@ -1,7 +1,6 @@
 import pytest
-from tracker_api.api.repository import (
-    get_price_history
-)
+from tracker_api.api.repository import get_price_history
+
 
 
 def test_get_price_history(mocker):
