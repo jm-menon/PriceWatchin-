@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 import os
 import dotenv
+from cache import redis_client
 
 env= dotenv.load_dotenv()
 DATABASE_URL= os.getenv("DATABASE_URL")
@@ -37,6 +38,13 @@ def write_price(product_id, vendor_id, price):
     except Exception as e:
         session.rollback()
         print(f"Error writing price: {e}")
+        
+    try:
+        redis_client.delete(f"cheapest:{product_id}")
+        redis_client.delete(f"history:{product_id}")
+        redis_client.delete(f"vendor_history:{product_id}:{vendor_id}")
+    except Exception as e:
+        print(f"Redis failed with error: {e}")
 
 def history_vendor_product(vendor_id, product_id):
     session= Session()
@@ -48,7 +56,6 @@ def history_vendor_product(vendor_id, product_id):
         return rows.fetchall()
     except Exception as e:
         print(f"Error fetching vendor history: {e}")
-
 
 def best_buy(product_id):
     session= Session()
