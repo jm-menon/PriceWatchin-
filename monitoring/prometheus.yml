@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'tracker'
+    static_configs:
+      - targets: ['tracker:8007']
+
+  - job_name: 'scraper'
+    static_configs:
+      - targets: ['scrapper:8006']
