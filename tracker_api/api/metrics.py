@@ -18,3 +18,4 @@ CACHE_MISSES = Counter(
     "redis_cache_misses_total",
     "Number of cache misses"
 )
+
