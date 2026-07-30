@@ -9,6 +9,12 @@ REQUEST_LATENCY= Histogram(
     "tracker_request_duration_seconds",
     "Request latency"
 )
+#this creates fyi:
+#tracker_request_duration_seconds_bucket
+#tracker_request_duration_seconds_count
+#tracker_request_duration_seconds_sum
+
+
 CACHE_HITS = Counter(
     "redis_cache_hits_total",
     "Number of cache hits"

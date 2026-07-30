@@ -104,7 +104,8 @@ services:
         condition: service_healthy  
       seed:
         condition: service_completed_successfully
-
+    ports:
+      - "8008:8008"
     command: ["sh", "-c", "sleep 5 && python main.py"]
 
   seed:

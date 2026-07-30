@@ -2,6 +2,7 @@ from clients import fetch_product, health_check
 from repository import get_all_products, get_all_vendors, write_price
 from normalizers import normalize_data
 
+
 def scrape():
     products= get_all_products()
     vendors= get_all_vendors()

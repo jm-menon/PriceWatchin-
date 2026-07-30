@@ -1,4 +1,6 @@
 import requests
+from metrics import REQUEST_COUNT, REQUEST_LATENCY
+import time
 
 def health_check(base_url):
     try:
@@ -9,9 +11,10 @@ def health_check(base_url):
         return False
     
 def fetch_product(base_url, product_id, vendor_id):
-
     url = f"{base_url}/products-site-{vendor_id}/{product_id}"
     print(f"Fetching product from URL: {url}")
+    REQUEST_COUNT.inc()
+    print(REQUEST_COUNT.inc())
     response = requests.get(
         url,
         timeout=5
@@ -24,6 +27,7 @@ def fetch_product(base_url, product_id, vendor_id):
 def fetch_history(vendor_id, product_id, base_url):
     url = f"{base_url}/history/{vendor_id}/{product_id}"
     print(f"Fetching history from URL: {url}")
+    REQUEST_COUNT.inc()
     response = requests.get(
         url,
         timeout=5
