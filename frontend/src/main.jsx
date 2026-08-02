@@ -1,6 +1,7 @@
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
+import './cheapest.css';
 
 const vendors = [
   { id: 'site1', name: 'V1', label: 'Site1', endpoint: '/products-site-1' },
@@ -57,7 +58,9 @@ function App() {
       {view === 'welcome' && <Welcome onBrowse={() => navigate('vendors')} />}
       {view === 'vendors' && <VendorList onSelect={selectVendor} />}
       {view === 'vendor' && activeVendor && <VendorProducts vendor={activeVendor} onBack={() => navigate('vendors')} />}
-      {['cheapest', 'history', 'product-vendor'].includes(view) && <ComingSoon title={menuItems.find((item) => item.key === view).label} />}
+      {view === 'cheapest' && <CheapestProduct />}
+      {view === 'history' && <ProductHistory />}
+      {view === 'product-vendor' && <ProductVendorHistory />}
     </main>
   );
 }
@@ -130,6 +133,163 @@ function VendorProducts({ vendor, onBack }) {
       <button aria-label="Close product details" onClick={() => setSelected(null)}>×</button>
       {selected.error ? <p>Couldn’t load this product.</p> : <><small>PRODUCT DETAILS</small><strong>{selected.product_name}</strong><span>₹{Number(selected.base_price).toLocaleString('en-IN')}</span></>}
     </div>}
+  </section>;
+}
+
+function CheapestProduct() {
+  const [productId, setProductId] = React.useState('');
+  const [result, setResult] = React.useState(null);
+  const [status, setStatus] = React.useState('idle');
+
+  const search = async (event) => {
+    event.preventDefault();
+    const id = Number(productId);
+    if (!Number.isInteger(id) || id < 1) {
+      setStatus('invalid');
+      setResult(null);
+      return;
+    }
+
+    setStatus('loading');
+    setResult(null);
+    try {
+      const response = await fetch(`/api/tracker/tracker/cheapest_product/${id}`);
+      if (!response.ok) throw new Error('Unable to find a price');
+      setResult(await response.json());
+      setStatus('ready');
+    } catch {
+      setStatus('error');
+    }
+  };
+
+  const vendorName = result ? vendors.find((vendor, index) => index + 1 === result.vendor_id)?.name ?? `Vendor ${result.vendor_id}` : '';
+
+  return <section className="page-content cheapest-page">
+    <p className="eyebrow">PRICE COMPARISON</p>
+    <h1 className="page-title">Find the cheapest price</h1>
+    <p className="intro">Enter a product ID to compare the latest prices across all vendors.</p>
+    <form className="price-search" onSubmit={search}>
+      <label className="search-box"><span aria-hidden="true">⌕</span><input inputMode="numeric" value={productId} onChange={(event) => setProductId(event.target.value)} placeholder="Enter product ID" aria-label="Product ID" /></label>
+      <button className="primary-button" type="submit">Find best price</button>
+    </form>
+    {status === 'loading' && <p className="status">Checking prices…</p>}
+    {status === 'invalid' && <p className="status error">Enter a valid product ID, such as 1.</p>}
+    {status === 'error' && <p className="status error">No price could be found. Make sure the tracker API is running and the product has price data.</p>}
+    {status === 'ready' && <section className="cheapest-result" aria-live="polite">
+      <span className="result-label">LOWEST CURRENT PRICE</span>
+      <strong>₹{Number(result.price).toLocaleString('en-IN')}</strong>
+      <p>Available from <b>{vendorName}</b></p>
+    </section>}
+  </section>;
+}
+
+function ProductHistory() {
+  const [productId, setProductId] = React.useState('');
+  const [history, setHistory] = React.useState([]);
+  const [status, setStatus] = React.useState('idle');
+
+  const search = async (event) => {
+    event.preventDefault();
+    const id = Number(productId);
+    if (!Number.isInteger(id) || id < 1) {
+      setStatus('invalid');
+      setHistory([]);
+      return;
+    }
+
+    setStatus('loading');
+    setHistory([]);
+    try {
+      const response = await fetch(`/api/tracker/tracker/price_history/${id}`);
+      if (!response.ok) throw new Error('Unable to find product history');
+      const data = await response.json();
+      setHistory([...data].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
+      setStatus('ready');
+    } catch {
+      setStatus('error');
+    }
+  };
+
+  const vendorName = (vendorId) => vendors.find((vendor, index) => index + 1 === vendorId)?.name ?? `Vendor ${vendorId}`;
+
+  return <section className="page-content history-page">
+    <p className="eyebrow">PRICE TIMELINE</p>
+    <h1 className="page-title">Search product history</h1>
+    <p className="intro">Enter a product ID to review every recorded price across vendors.</p>
+    <form className="price-search" onSubmit={search}>
+      <label className="search-box"><span aria-hidden="true">⌕</span><input inputMode="numeric" value={productId} onChange={(event) => setProductId(event.target.value)} placeholder="Enter product ID" aria-label="Product ID" /></label>
+      <button className="primary-button" type="submit">View history</button>
+    </form>
+    {status === 'loading' && <p className="status">Loading price history…</p>}
+    {status === 'invalid' && <p className="status error">Enter a valid product ID, such as 1.</p>}
+    {status === 'error' && <p className="status error">No history could be found. Make sure the tracker API is running and the product has price data.</p>}
+    {status === 'ready' && <section className="history-results" aria-live="polite">
+      <div className="history-heading"><span>PRICE HISTORY</span><small>{history.length} record{history.length === 1 ? '' : 's'}</small></div>
+      {!history.length && <p className="status">No prices have been recorded for this product yet.</p>}
+      {history.map((record) => <article className="history-row" key={record.price_id}>
+        <span className="history-dot" aria-hidden="true"></span>
+        <div><strong>{vendorName(record.vendor_id)}</strong><small>{new Date(record.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</small></div>
+        <b>₹{Number(record.price).toLocaleString('en-IN')}</b>
+      </article>)}
+    </section>}
+  </section>;
+}
+
+function ProductVendorHistory() {
+  const [productId, setProductId] = React.useState('');
+  const [vendorId, setVendorId] = React.useState('');
+  const [history, setHistory] = React.useState([]);
+  const [status, setStatus] = React.useState('idle');
+
+  const search = async (event) => {
+    event.preventDefault();
+    const product = Number(productId);
+    const vendor = Number(vendorId);
+    if (!Number.isInteger(product) || product < 1 || !Number.isInteger(vendor) || vendor < 1) {
+      setStatus('invalid');
+      setHistory([]);
+      return;
+    }
+
+    setStatus('loading');
+    setHistory([]);
+    try {
+      const response = await fetch(`/api/tracker/tracker/product_vendor_history/${product}/${vendor}`);
+      if (!response.ok) throw new Error('Unable to find product vendor history');
+      const data = await response.json();
+      setHistory([...data].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
+      setStatus('ready');
+    } catch {
+      setStatus('error');
+    }
+  };
+
+  const selectedVendor = vendors.find((vendor, index) => index + 1 === Number(vendorId));
+
+  return <section className="page-content history-page">
+    <p className="eyebrow">VENDOR PRICE TIMELINE</p>
+    <h1 className="page-title">Search product and vendor</h1>
+    <p className="intro">Choose a vendor and product ID to review that vendor’s recorded price changes.</p>
+    <form className="vendor-history-search" onSubmit={search}>
+      <label className="search-box"><span aria-hidden="true">⌕</span><input inputMode="numeric" value={productId} onChange={(event) => setProductId(event.target.value)} placeholder="Enter product ID" aria-label="Product ID" /></label>
+      <select className="vendor-select" value={vendorId} onChange={(event) => setVendorId(event.target.value)} aria-label="Vendor">
+        <option value="">Choose vendor</option>
+        {vendors.map((vendor, index) => <option key={vendor.id} value={index + 1}>{vendor.name} — {vendor.label}</option>)}
+      </select>
+      <button className="primary-button" type="submit">View history</button>
+    </form>
+    {status === 'loading' && <p className="status">Loading vendor price history…</p>}
+    {status === 'invalid' && <p className="status error">Enter a valid product ID and choose a vendor.</p>}
+    {status === 'error' && <p className="status error">No history could be found. Make sure the tracker API is running and this vendor has price data for the product.</p>}
+    {status === 'ready' && <section className="history-results" aria-live="polite">
+      <div className="history-heading"><span>{selectedVendor?.name ?? 'VENDOR'} PRICE HISTORY</span><small>{history.length} record{history.length === 1 ? '' : 's'}</small></div>
+      {!history.length && <p className="status">No prices have been recorded for this vendor and product yet.</p>}
+      {history.map((record) => <article className="history-row" key={record.price_id}>
+        <span className="history-dot" aria-hidden="true"></span>
+        <div><strong>{selectedVendor?.name ?? `Vendor ${record.vendor_id}`}</strong><small>{new Date(record.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</small></div>
+        <b>₹{Number(record.price).toLocaleString('en-IN')}</b>
+      </article>)}
+    </section>}
   </section>;
 }
 

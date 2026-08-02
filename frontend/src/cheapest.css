@@ -1,0 +1,112 @@
+.price-search {
+  max-width: 670px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.price-search .search-box {
+  flex: 1;
+  margin: 0;
+}
+
+.cheapest-result {
+  max-width: 670px;
+  margin-top: 28px;
+  padding: 28px;
+  border: 1px solid #cbdcc7;
+  border-radius: 16px;
+  background: #e9f2df;
+  display: grid;
+  gap: 9px;
+}
+
+.result-label {
+  color: #528478;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+}
+
+.cheapest-result strong {
+  color: #0c5c51;
+  font: 700 44px/1 'Playfair Display', serif;
+}
+
+.cheapest-result p {
+  color: #40655c;
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .price-search { display: grid; }
+  .price-search .primary-button { width: 100%; }
+}
+
+.history-results {
+  max-width: 670px;
+  margin-top: 32px;
+  border: 1px solid #dfe4da;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fffdf8;
+}
+
+.history-heading {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 20px;
+  color: #528478;
+  background: #f0f5ec;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.history-heading small { font-size: 11px; letter-spacing: 0; }
+
+.history-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 17px 20px;
+  border-top: 1px solid #edf0e9;
+}
+
+.history-row > div { display: grid; gap: 4px; }
+.history-row small { color: #72847c; }
+.history-row b { margin-left: auto; color: #0c5c51; }
+
+.history-dot {
+  width: 10px;
+  height: 10px;
+  border: 2px solid #70a093;
+  border-radius: 50%;
+  background: #f6f8f2;
+}
+
+.vendor-history-search {
+  max-width: 670px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 175px auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.vendor-history-search .search-box { max-width: none; margin: 0; }
+
+.vendor-select {
+  height: 49px;
+  padding: 0 12px;
+  color: #23443e;
+  border: 1px solid #d9dfd6;
+  border-radius: 12px;
+  background: #fffdf8;
+  outline-color: #78a79a;
+}
+
+@media (max-width: 600px) {
+  .vendor-history-search { grid-template-columns: 1fr; }
+  .vendor-history-search .primary-button { width: 100%; }
+}
