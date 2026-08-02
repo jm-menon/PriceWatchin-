@@ -6,7 +6,6 @@ from cache import redis_client
 
 env= dotenv.load_dotenv()
 DATABASE_URL= os.getenv("DATABASE_URL")
-
 engine= create_engine(DATABASE_URL)
 Session= sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -29,7 +28,8 @@ def get_all_vendors():
 def write_price(product_id, vendor_id, price):
     session=Session()
     try:
-        session.execute(text("insert into price_history (product_id, vendor_id, price) values (:product_id, :vendor_id, :price)"),{
+        session.execute(text("insert into price_history (product_id, vendor_id, price) " \
+        "values (:product_id, :vendor_id, :price)"),{
             "product_id": product_id,
             "vendor_id": vendor_id,
             "price": price

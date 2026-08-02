@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from .database import get_db, get_all_items, get_item_id
 import asyncio, random
 
+
 router= APIRouter()
 
 @router.get("/", response_model=List[Product])
@@ -28,5 +29,6 @@ async def get_product(product_id: int, db: Session=Depends(get_db)):
         return product
     except Exception as e:
         raise HTTPException(status_code=500, detail="Server error: Failed to retrieve product")
+    
     
     ###########################

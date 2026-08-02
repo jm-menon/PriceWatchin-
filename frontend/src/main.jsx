@@ -7,7 +7,8 @@ const vendors = [
   { id: 'site1', name: 'V1', label: 'Site1', endpoint: '/products-site-1' },
   { id: 'site2', name: 'V2', label: 'Site2', endpoint: '/products-site-2' },
   { id: 'site3', name: 'V3', label: 'Site3', endpoint: '/products-site-3' },
-  { id: 'site4', name: 'V4', label: 'Site4', endpoint: '/products-site-4' }
+  { id: 'site4', name: 'V4', label: 'Site4', endpoint: '/products-site-4' },
+  { id: 'site5', name: 'V5', label: 'Site5', endpoint: '/products-site-5' }
 ];
 
 const menuItems = [
