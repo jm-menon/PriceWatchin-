@@ -2,6 +2,7 @@ import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 import './cheapest.css';
+import './compare.css';
 
 const vendors = [
   { id: 'site1', name: 'Vendor 1', label: 'Site1', endpoint: '/products-site-1' },
@@ -13,6 +14,7 @@ const vendors = [
 
 const menuItems = [
   { key: 'vendors', label: 'Our vendors' },
+  { key: 'compare', label: 'Compare prices' },
   { key: 'cheapest', label: 'Search cheapest price' },
   { key: 'history', label: 'Search product history' },
   { key: 'product-vendor', label: 'Search product and vendor' }
@@ -58,9 +60,10 @@ function App() {
         </div>
       </header>
 
-      {view === 'welcome' && <Welcome onBrowse={() => navigate('vendors')} />}
+      {view === 'welcome' && <Welcome onBrowse={() => navigate('vendors')} onCompare={() => navigate('compare')} />}
       {view === 'vendors' && <VendorList onSelect={selectVendor} />}
       {view === 'vendor' && activeVendor && <VendorProducts vendor={activeVendor} onBack={() => navigate('vendors')} />}
+      {view === 'compare' && <CompareHub onSelect={navigate} />}
       {view === 'cheapest' && <CheapestProduct />}
       {view === 'history' && <ProductHistory />}
       {view === 'product-vendor' && <ProductVendorHistory />}
@@ -68,13 +71,37 @@ function App() {
   );
 }
 
-function Welcome({ onBrowse }) {
+function Welcome({ onBrowse, onCompare }) {
   return <section className="welcome page-content">
     <p className="eyebrow">COMPARE SMARTER</p>
     <h1>Find the right price,<br />without the hunt.</h1>
-    <p className="intro">Browse, Compare and Shop products from your favourite vendors in one calm, simple, zen place :).</p>
-    <button className="primary-button" onClick={onBrowse}>Browse vendors <span aria-hidden="true">→</span></button>
+    <p className="intro">Browse, compare, and shop products from your favourite vendors in one calm, simple place.</p>
+    <div className="welcome-actions">
+      <button className="primary-button" onClick={onBrowse}>Browse vendors <span aria-hidden="true">→</span></button>
+      <button className="secondary-button" onClick={onCompare}>Compare prices <span aria-hidden="true">↗</span></button>
+    </div>
     <div className="hero-orb orb-one"></div><div className="hero-orb orb-two"></div>
+  </section>;
+}
+
+function CompareHub({ onSelect }) {
+  const tools = [
+    { key: 'cheapest', icon: '₹', title: 'Cheapest price', text: 'Find the best recorded price for a product in a chosen date range.' },
+    { key: 'history', icon: '◷', title: 'Product history', text: 'Review how a product’s price has changed across all vendors.' },
+    { key: 'product-vendor', icon: '⌁', title: 'Product + vendor', text: 'Inspect price history for one specific vendor and product.' }
+  ];
+
+  return <section className="page-content compare-page">
+    <p className="eyebrow">COMPARE PRICES</p>
+    <h1 className="page-title">Make every price count.</h1>
+    <p className="intro">Choose a comparison tool to find the insight you need.</p>
+    <div className="compare-grid">
+      {tools.map((tool) => <button className="compare-card" key={tool.key} onClick={() => onSelect(tool.key)}>
+        <span className="compare-icon" aria-hidden="true">{tool.icon}</span>
+        <span className="compare-card-copy"><strong>{tool.title}</strong><small>{tool.text}</small></span>
+        <span className="arrow" aria-hidden="true">→</span>
+      </button>)}
+    </div>
   </section>;
 }
 
