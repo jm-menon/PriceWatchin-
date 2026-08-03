@@ -6,6 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from typing import List, Optional
 import random
 
+
 load_dotenv()
 DATABASE_URL= os.getenv("DATABASE_URL")
 

@@ -12,19 +12,19 @@ import time
 router= APIRouter()
 
 
-@router.get("/price_history/{product_id}", response_model=List[PriceHistoryResponse])
+@router.get("/price_history/{product_id}/{date_from}/{date_to}", response_model=List[PriceHistoryResponse])
 #@REQUEST_LATENCY.time()
-async def get_price_history_api(product_id: int, db: Session=Depends(get_db)):
+async def get_price_history_api(product_id: int, date_from: str, date_to: str, db: Session=Depends(get_db)):
     REQUEST_COUNT.inc()
     start = time.perf_counter()
     try:
-        key = f"cheapest:{product_id}"
+        key = f"price_history:{product_id}:{date_from}:{date_to}"
         cached = redis_client.get(key)
         if cached:
             CACHE_HITS.inc()
             return json.loads(cached)
         CACHE_MISSES.inc()
-        price_history= get_price_history(product_id, db)
+        price_history= get_price_history(product_id, date_from, date_to, db)
         row = price_history[0]
         response = [
         {
@@ -49,19 +49,19 @@ async def get_price_history_api(product_id: int, db: Session=Depends(get_db)):
         REQUEST_LATENCY.observe(time.perf_counter() - start)
 
 
-@router.get("/cheapest_product/{product_id}", response_model=CheapestProductResponse)
+@router.get("/cheapest_product/{product_id}/{date_from}/{date_to}", response_model=CheapestProductResponse)
 #@REQUEST_LATENCY.time()
-async def get_cheapest_product_api(product_id: int, db: Session=Depends(get_db)):
+async def get_cheapest_product_api(product_id: int, date_from: str, date_to: str, db: Session=Depends(get_db)):
     REQUEST_COUNT.inc()
     start = time.perf_counter()
     try:
-        key = f"cheapest:{product_id}"
+        key = f"cheapest:{product_id}:{date_from}:{date_to}"
         cached = redis_client.get(key)
         if cached:
             CACHE_HITS.inc()
             return json.loads(cached)
         CACHE_MISSES.inc()
-        cheapest_product= get_cheapest_product(product_id, db)
+        cheapest_product= get_cheapest_product(product_id,date_from,date_to, db)
         response={
             "price": cheapest_product.price,
             "vendor_id": cheapest_product.vendor_id
@@ -80,19 +80,19 @@ async def get_cheapest_product_api(product_id: int, db: Session=Depends(get_db))
 
     
 
-@router.get("/product_vendor_history/{product_id}/{vendor_id}", response_model=list[PriceHistoryResponse])
+@router.get("/product_vendor_history/{product_id}/{vendor_id}/{date_from}/{date_to}", response_model=list[PriceHistoryResponse])
 #@REQUEST_LATENCY.time()
-async def get_product_vendor_history_api(product_id: int, vendor_id: int, db: Session=Depends(get_db)):
+async def get_product_vendor_history_api(product_id: int, vendor_id: int, date_from: str, date_to: str, db: Session=Depends(get_db)):
     REQUEST_COUNT.inc()
     start=time.perf_counter()
     try:
-        key = f"cheapest:{product_id}"
+        key = f"product_vendor_history:{product_id}:{vendor_id}:{date_from}:{date_to}"
         cached = redis_client.get(key)
         if cached:
             CACHE_HITS.inc()
             return json.loads(cached)
         CACHE_MISSES.inc()
-        product_vendor_history= get_product_vendor_history(product_id, vendor_id, db)
+        product_vendor_history= get_product_vendor_history(product_id, vendor_id, date_from, date_to, db)
         response = [
         {
         "price_id": row.price_id,

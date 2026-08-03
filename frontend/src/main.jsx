@@ -4,11 +4,11 @@ import './styles.css';
 import './cheapest.css';
 
 const vendors = [
-  { id: 'site1', name: 'V1', label: 'Site1', endpoint: '/products-site-1' },
-  { id: 'site2', name: 'V2', label: 'Site2', endpoint: '/products-site-2' },
-  { id: 'site3', name: 'V3', label: 'Site3', endpoint: '/products-site-3' },
-  { id: 'site4', name: 'V4', label: 'Site4', endpoint: '/products-site-4' },
-  { id: 'site5', name: 'V5', label: 'Site5', endpoint: '/products-site-5' }
+  { id: 'site1', name: 'Vendor 1', label: 'Site1', endpoint: '/products-site-1' },
+  { id: 'site2', name: 'Vendor 2', label: 'Site2', endpoint: '/products-site-2' },
+  { id: 'site3', name: 'Vendor 3', label: 'Site3', endpoint: '/products-site-3' },
+  { id: 'site4', name: 'Vendor 4', label: 'Site4', endpoint: '/products-site-4' },
+  { id: 'site5', name: 'Vendor 5', label: 'Site5', endpoint: '/products-site-5' }
 ];
 
 const menuItems = [
@@ -17,6 +17,8 @@ const menuItems = [
   { key: 'history', label: 'Search product history' },
   { key: 'product-vendor', label: 'Search product and vendor' }
 ];
+
+const hasValidDateRange = (dateFrom, dateTo) => Boolean(dateFrom && dateTo && dateFrom <= dateTo);
 
 function App() {
   const [view, setView] = React.useState('welcome');
@@ -70,7 +72,7 @@ function Welcome({ onBrowse }) {
   return <section className="welcome page-content">
     <p className="eyebrow">COMPARE SMARTER</p>
     <h1>Find the right price,<br />without the hunt.</h1>
-    <p className="intro">Browse products from your favourite vendors in one calm, simple place.</p>
+    <p className="intro">Browse, Compare and Shop products from your favourite vendors in one calm, simple, zen place :).</p>
     <button className="primary-button" onClick={onBrowse}>Browse vendors <span aria-hidden="true">→</span></button>
     <div className="hero-orb orb-one"></div><div className="hero-orb orb-two"></div>
   </section>;
@@ -139,13 +141,15 @@ function VendorProducts({ vendor, onBack }) {
 
 function CheapestProduct() {
   const [productId, setProductId] = React.useState('');
+  const [dateFrom, setDateFrom] = React.useState('');
+  const [dateTo, setDateTo] = React.useState('');
   const [result, setResult] = React.useState(null);
   const [status, setStatus] = React.useState('idle');
 
   const search = async (event) => {
     event.preventDefault();
     const id = Number(productId);
-    if (!Number.isInteger(id) || id < 1) {
+    if (!Number.isInteger(id) || id < 1 || !hasValidDateRange(dateFrom, dateTo)) {
       setStatus('invalid');
       setResult(null);
       return;
@@ -154,7 +158,7 @@ function CheapestProduct() {
     setStatus('loading');
     setResult(null);
     try {
-      const response = await fetch(`/api/tracker/tracker/cheapest_product/${id}`);
+      const response = await fetch(`/api/tracker/tracker/cheapest_product/${id}/${dateFrom}/${dateTo}`);
       if (!response.ok) throw new Error('Unable to find a price');
       setResult(await response.json());
       setStatus('ready');
@@ -168,13 +172,14 @@ function CheapestProduct() {
   return <section className="page-content cheapest-page">
     <p className="eyebrow">PRICE COMPARISON</p>
     <h1 className="page-title">Find the cheapest price</h1>
-    <p className="intro">Enter a product ID to compare the latest prices across all vendors.</p>
-    <form className="price-search" onSubmit={search}>
+    <p className="intro">Enter a product ID and date range to compare prices recorded across all vendors.</p>
+    <form className="price-search date-search" onSubmit={search}>
       <label className="search-box"><span aria-hidden="true">⌕</span><input inputMode="numeric" value={productId} onChange={(event) => setProductId(event.target.value)} placeholder="Enter product ID" aria-label="Product ID" /></label>
+      <DateRangeInputs dateFrom={dateFrom} dateTo={dateTo} setDateFrom={setDateFrom} setDateTo={setDateTo} />
       <button className="primary-button" type="submit">Find best price</button>
     </form>
     {status === 'loading' && <p className="status">Checking prices…</p>}
-    {status === 'invalid' && <p className="status error">Enter a valid product ID, such as 1.</p>}
+    {status === 'invalid' && <p className="status error">Enter a valid product ID and date range. The start date must be before the end date.</p>}
     {status === 'error' && <p className="status error">No price could be found. Make sure the tracker API is running and the product has price data.</p>}
     {status === 'ready' && <section className="cheapest-result" aria-live="polite">
       <span className="result-label">LOWEST CURRENT PRICE</span>
@@ -186,13 +191,15 @@ function CheapestProduct() {
 
 function ProductHistory() {
   const [productId, setProductId] = React.useState('');
+  const [dateFrom, setDateFrom] = React.useState('');
+  const [dateTo, setDateTo] = React.useState('');
   const [history, setHistory] = React.useState([]);
   const [status, setStatus] = React.useState('idle');
 
   const search = async (event) => {
     event.preventDefault();
     const id = Number(productId);
-    if (!Number.isInteger(id) || id < 1) {
+    if (!Number.isInteger(id) || id < 1 || !hasValidDateRange(dateFrom, dateTo)) {
       setStatus('invalid');
       setHistory([]);
       return;
@@ -201,7 +208,7 @@ function ProductHistory() {
     setStatus('loading');
     setHistory([]);
     try {
-      const response = await fetch(`/api/tracker/tracker/price_history/${id}`);
+      const response = await fetch(`/api/tracker/tracker/price_history/${id}/${dateFrom}/${dateTo}`);
       if (!response.ok) throw new Error('Unable to find product history');
       const data = await response.json();
       setHistory([...data].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
@@ -216,13 +223,14 @@ function ProductHistory() {
   return <section className="page-content history-page">
     <p className="eyebrow">PRICE TIMELINE</p>
     <h1 className="page-title">Search product history</h1>
-    <p className="intro">Enter a product ID to review every recorded price across vendors.</p>
-    <form className="price-search" onSubmit={search}>
+    <p className="intro">Enter a product ID and date range to review recorded prices across vendors.</p>
+    <form className="price-search date-search" onSubmit={search}>
       <label className="search-box"><span aria-hidden="true">⌕</span><input inputMode="numeric" value={productId} onChange={(event) => setProductId(event.target.value)} placeholder="Enter product ID" aria-label="Product ID" /></label>
+      <DateRangeInputs dateFrom={dateFrom} dateTo={dateTo} setDateFrom={setDateFrom} setDateTo={setDateTo} />
       <button className="primary-button" type="submit">View history</button>
     </form>
     {status === 'loading' && <p className="status">Loading price history…</p>}
-    {status === 'invalid' && <p className="status error">Enter a valid product ID, such as 1.</p>}
+    {status === 'invalid' && <p className="status error">Enter a valid product ID and date range. The start date must be before the end date.</p>}
     {status === 'error' && <p className="status error">No history could be found. Make sure the tracker API is running and the product has price data.</p>}
     {status === 'ready' && <section className="history-results" aria-live="polite">
       <div className="history-heading"><span>PRICE HISTORY</span><small>{history.length} record{history.length === 1 ? '' : 's'}</small></div>
@@ -239,6 +247,8 @@ function ProductHistory() {
 function ProductVendorHistory() {
   const [productId, setProductId] = React.useState('');
   const [vendorId, setVendorId] = React.useState('');
+  const [dateFrom, setDateFrom] = React.useState('');
+  const [dateTo, setDateTo] = React.useState('');
   const [history, setHistory] = React.useState([]);
   const [status, setStatus] = React.useState('idle');
 
@@ -246,7 +256,7 @@ function ProductVendorHistory() {
     event.preventDefault();
     const product = Number(productId);
     const vendor = Number(vendorId);
-    if (!Number.isInteger(product) || product < 1 || !Number.isInteger(vendor) || vendor < 1) {
+    if (!Number.isInteger(product) || product < 1 || !Number.isInteger(vendor) || vendor < 1 || !hasValidDateRange(dateFrom, dateTo)) {
       setStatus('invalid');
       setHistory([]);
       return;
@@ -255,7 +265,7 @@ function ProductVendorHistory() {
     setStatus('loading');
     setHistory([]);
     try {
-      const response = await fetch(`/api/tracker/tracker/product_vendor_history/${product}/${vendor}`);
+      const response = await fetch(`/api/tracker/tracker/product_vendor_history/${product}/${vendor}/${dateFrom}/${dateTo}`);
       if (!response.ok) throw new Error('Unable to find product vendor history');
       const data = await response.json();
       setHistory([...data].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
@@ -270,17 +280,18 @@ function ProductVendorHistory() {
   return <section className="page-content history-page">
     <p className="eyebrow">VENDOR PRICE TIMELINE</p>
     <h1 className="page-title">Search product and vendor</h1>
-    <p className="intro">Choose a vendor and product ID to review that vendor’s recorded price changes.</p>
+    <p className="intro">Choose a vendor, product ID, and date range to review that vendor’s recorded price changes.</p>
     <form className="vendor-history-search" onSubmit={search}>
       <label className="search-box"><span aria-hidden="true">⌕</span><input inputMode="numeric" value={productId} onChange={(event) => setProductId(event.target.value)} placeholder="Enter product ID" aria-label="Product ID" /></label>
       <select className="vendor-select" value={vendorId} onChange={(event) => setVendorId(event.target.value)} aria-label="Vendor">
         <option value="">Choose vendor</option>
         {vendors.map((vendor, index) => <option key={vendor.id} value={index + 1}>{vendor.name} — {vendor.label}</option>)}
       </select>
+      <DateRangeInputs dateFrom={dateFrom} dateTo={dateTo} setDateFrom={setDateFrom} setDateTo={setDateTo} />
       <button className="primary-button" type="submit">View history</button>
     </form>
     {status === 'loading' && <p className="status">Loading vendor price history…</p>}
-    {status === 'invalid' && <p className="status error">Enter a valid product ID and choose a vendor.</p>}
+    {status === 'invalid' && <p className="status error">Enter a valid product ID, choose a vendor, and select a valid date range.</p>}
     {status === 'error' && <p className="status error">No history could be found. Make sure the tracker API is running and this vendor has price data for the product.</p>}
     {status === 'ready' && <section className="history-results" aria-live="polite">
       <div className="history-heading"><span>{selectedVendor?.name ?? 'VENDOR'} PRICE HISTORY</span><small>{history.length} record{history.length === 1 ? '' : 's'}</small></div>
@@ -292,6 +303,13 @@ function ProductVendorHistory() {
       </article>)}
     </section>}
   </section>;
+}
+
+function DateRangeInputs({ dateFrom, dateTo, setDateFrom, setDateTo }) {
+  return <div className="date-range">
+    <label><span>From</span><input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} aria-label="Start date" /></label>
+    <label><span>To</span><input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} min={dateFrom || undefined} aria-label="End date" /></label>
+  </div>;
 }
 
 function ComingSoon({ title }) {

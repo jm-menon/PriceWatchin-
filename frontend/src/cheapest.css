@@ -10,6 +10,35 @@
   margin: 0;
 }
 
+.date-search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.date-search .search-box { max-width: none; }
+
+.date-search .date-range { grid-column: 1 / -1; }
+
+.date-range {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.date-range label { display: grid; gap: 6px; color: #58716a; font-size: 12px; font-weight: 700; }
+
+.date-range input {
+  height: 49px;
+  min-width: 0;
+  padding: 0 12px;
+  color: #23443e;
+  border: 1px solid #d9dfd6;
+  border-radius: 12px;
+  background: #fffdf8;
+  outline-color: #78a79a;
+}
+
 .cheapest-result {
   max-width: 670px;
   margin-top: 28px;
@@ -89,12 +118,14 @@
 .vendor-history-search {
   max-width: 670px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 175px auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
   align-items: center;
 }
 
 .vendor-history-search .search-box { max-width: none; margin: 0; }
+.vendor-history-search .date-range { grid-column: 1 / -1; }
+.vendor-history-search .primary-button { justify-self: start; }
 
 .vendor-select {
   height: 49px;
@@ -109,4 +140,6 @@
 @media (max-width: 600px) {
   .vendor-history-search { grid-template-columns: 1fr; }
   .vendor-history-search .primary-button { width: 100%; }
+  .date-search { grid-template-columns: 1fr; }
+  .date-range { grid-template-columns: 1fr; }
 }

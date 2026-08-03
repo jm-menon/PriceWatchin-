@@ -46,6 +46,34 @@ def write_price(product_id, vendor_id, price):
     except Exception as e:
         print(f"Redis failed with error: {e}")
 
+
+def clear_price_history_if_limit_exceeded(limit=200):
+    """Clear all price history once the configured global row limit is exceeded."""
+    session = Session()
+    try:
+        record_count = session.execute(text("SELECT COUNT(*) FROM price_history")).scalar_one()
+        if record_count <= limit:
+            return False
+
+        session.execute(text("TRUNCATE TABLE price_history"))
+        session.commit()
+        print(f"Cleared price_history after it reached {record_count} records (limit: {limit}).")
+
+        try:
+            for key_pattern in ("cheapest:*", "price_history:*", "product_vendor_history:*"):
+                for key in redis_client.scan_iter(match=key_pattern):
+                    redis_client.delete(key)
+        except Exception as e:
+            print(f"Redis cache cleanup failed with error: {e}")
+
+        return True
+    except Exception as e:
+        session.rollback()
+        print(f"Error clearing price history: {e}")
+        return False
+    finally:
+        session.close()
+
 def history_vendor_product(vendor_id, product_id):
     session= Session()
     try:
