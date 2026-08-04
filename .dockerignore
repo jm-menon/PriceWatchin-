@@ -1,0 +1,30 @@
+# Version control and local configuration
+.git
+.gitignore
+.env
+.env.*
+
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# JavaScript dependencies and generated output
+**/node_modules/
+**/dist/
+npm-debug.log*
+
+# Not needed by the root-context seed image
+frontend/
+locust/
+monitoring/
+tests/
+tracker_api/
+workers/
+simulators/
+infra/
+docker-compose.yml
+README.md
+db.sql
