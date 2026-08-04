@@ -1,0 +1,16 @@
+server {
+    listen ${PORT};
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location /api/site1/ { proxy_pass http://${SITE1_HOSTPORT}/; proxy_set_header Host $host; }
+    location /api/site2/ { proxy_pass http://${SITE2_HOSTPORT}/; proxy_set_header Host $host; }
+    location /api/site3/ { proxy_pass http://${SITE3_HOSTPORT}/; proxy_set_header Host $host; }
+    location /api/site4/ { proxy_pass http://${SITE4_HOSTPORT}/; proxy_set_header Host $host; }
+    location /api/site5/ { proxy_pass http://${SITE5_HOSTPORT}/; proxy_set_header Host $host; }
+    location /api/tracker/ { proxy_pass http://${TRACKER_HOSTPORT}/; proxy_set_header Host $host; }
+
+    location / { try_files $uri /index.html; }
+}

@@ -131,8 +131,8 @@ services:
 
   tracker:
       build:
-        context: ./tracker_api/api
-        dockerfile: Dockerfile
+        context: .
+        dockerfile: tracker_api/api/Dockerfile
 
       container_name: tracker
 

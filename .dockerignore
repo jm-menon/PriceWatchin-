@@ -21,10 +21,8 @@ frontend/
 locust/
 monitoring/
 tests/
-tracker_api/
 workers/
 simulators/
-infra/
 docker-compose.yml
 README.md
 db.sql

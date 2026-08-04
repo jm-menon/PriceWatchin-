@@ -13,3 +13,13 @@ After every scraper cycle, the scraper checks the total row count in `price_hist
 When it exceeds `PRICE_HISTORY_MAX_RECORDS` (default: `200`), it clears the table and
 invalidates cached price-search responses. Set `PRICE_HISTORY_MAX_RECORDS` in `.env` to
 change the threshold.
+
+## Deploying to Render
+
+This repository includes `render.yaml` for a Blueprint deployment. It creates the
+public frontend, private tracker and vendor APIs, scraper worker, Render Postgres,
+and Render Key Value. The tracker performs a one-time database schema and seed
+initialization during its first deployment.
+
+Private services and background workers require paid Render plans. Review the
+Blueprint's selected plans before confirming deployment.

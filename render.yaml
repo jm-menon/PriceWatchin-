@@ -1,0 +1,114 @@
+services:
+  - type: web
+    name: pricewatchin-frontend
+    runtime: docker
+    plan: free
+    dockerContext: ./frontend
+    dockerfilePath: ./frontend/Dockerfile
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: "80"
+      - key: SITE1_HOSTPORT
+        fromService: { name: pricewatchin-site1, type: pserv, property: hostport }
+      - key: SITE2_HOSTPORT
+        fromService: { name: pricewatchin-site2, type: pserv, property: hostport }
+      - key: SITE3_HOSTPORT
+        fromService: { name: pricewatchin-site3, type: pserv, property: hostport }
+      - key: SITE4_HOSTPORT
+        fromService: { name: pricewatchin-site4, type: pserv, property: hostport }
+      - key: SITE5_HOSTPORT
+        fromService: { name: pricewatchin-site5, type: pserv, property: hostport }
+      - key: TRACKER_HOSTPORT
+        fromService: { name: pricewatchin-tracker, type: pserv, property: hostport }
+
+  - type: pserv
+    name: pricewatchin-tracker
+    runtime: docker
+    plan: starter
+    dockerContext: .
+    dockerfilePath: ./tracker_api/api/Dockerfile
+    initialDeployHook: python bootstrap_database.py
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: { name: pricewatchin-db, property: connectionString }
+      - key: REDIS_URL
+        fromService: { name: pricewatchin-cache, type: keyvalue, property: connectionString }
+      - key: SITE1_HOSTPORT
+        fromService: { name: pricewatchin-site1, type: pserv, property: hostport }
+      - key: SITE2_HOSTPORT
+        fromService: { name: pricewatchin-site2, type: pserv, property: hostport }
+      - key: SITE3_HOSTPORT
+        fromService: { name: pricewatchin-site3, type: pserv, property: hostport }
+      - key: SITE4_HOSTPORT
+        fromService: { name: pricewatchin-site4, type: pserv, property: hostport }
+      - key: SITE5_HOSTPORT
+        fromService: { name: pricewatchin-site5, type: pserv, property: hostport }
+
+  - type: pserv
+    name: pricewatchin-site1
+    runtime: docker
+    plan: starter
+    dockerContext: ./simulators/ecomm-site-1
+    dockerfilePath: ./simulators/ecomm-site-1/Dockerfile
+    envVars: &database_env
+      - key: DATABASE_URL
+        fromDatabase: { name: pricewatchin-db, property: connectionString }
+
+  - type: pserv
+    name: pricewatchin-site2
+    runtime: docker
+    plan: starter
+    dockerContext: ./simulators/ecomm-site-2
+    dockerfilePath: ./simulators/ecomm-site-2/Dockerfile
+    envVars: *database_env
+
+  - type: pserv
+    name: pricewatchin-site3
+    runtime: docker
+    plan: starter
+    dockerContext: ./simulators/ecomm-site-3
+    dockerfilePath: ./simulators/ecomm-site-3/Dockerfile
+    envVars: *database_env
+
+  - type: pserv
+    name: pricewatchin-site4
+    runtime: docker
+    plan: starter
+    dockerContext: ./simulators/ecomm-site-4
+    dockerfilePath: ./simulators/ecomm-site-4/Dockerfile
+    envVars: *database_env
+
+  - type: pserv
+    name: pricewatchin-site5
+    runtime: docker
+    plan: starter
+    dockerContext: ./simulators/ecomm-site-5
+    dockerfilePath: ./simulators/ecomm-site-5/Dockerfile
+    envVars: *database_env
+
+  - type: worker
+    name: pricewatchin-scraper
+    runtime: docker
+    plan: starter
+    dockerContext: ./workers/scraper
+    dockerfilePath: ./workers/scraper/Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: { name: pricewatchin-db, property: connectionString }
+      - key: REDIS_URL
+        fromService: { name: pricewatchin-cache, type: keyvalue, property: connectionString }
+      - key: PRICE_HISTORY_MAX_RECORDS
+        value: "200"
+
+  - type: keyvalue
+    name: pricewatchin-cache
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+
+databases:
+  - name: pricewatchin-db
+    plan: free
+    databaseName: pricewatch
+    postgresMajorVersion: "16"
