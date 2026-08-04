@@ -23,3 +23,10 @@ initialization during its first deployment.
 
 Private services and background workers require paid Render plans. Review the
 Blueprint's selected plans before confirming deployment.
+
+## Frontend production build
+
+The frontend's production image is served by Nginx, not the Vite development
+server. Build and run it locally with `docker compose up --build frontend`, then
+open `http://localhost:5173`. The container exposes `/health` for deployment
+health checks.
