@@ -25,3 +25,18 @@ CACHE_MISSES = Counter(
     "Number of cache misses"
 )
 
+CLASSICAL_HANDSHAKE_DURATION = Histogram(
+    "classical_handshake_duration_seconds",
+    "Latency of classical handshake"
+)
+
+PQC_HANDSHAKE_DURATION = Histogram(
+    "pqc_handshake_duration_seconds",
+    "Latency of hybrid PQC handshake"
+)
+
+HANDSHAKE_PAYLOAD_BYTES = Counter(
+    "handshake_payload_bytes_total",
+    "Total bytes exchanged during handshake",
+    ["type"]
+)

@@ -31,3 +31,16 @@ class TrackerUser(HttpUser):
         print(f"Requesting product vendor history for product_id: {product_id}, vendor_id: {vendor_id}, {date_string}")
         print(f"URL: /tracker/product_vendor_history/{product_id}/{vendor_id}/{date_string}/{date_string}")
         self.client.get(f"/tracker/product_vendor_history/{product_id}/{vendor_id}/{date_string}/{date_string}")
+
+
+class PQCHandshakeUser(HttpUser):
+
+    wait_time = between(0.2, 0.5)
+
+    @task(3)
+    def classical(self):
+        self.client.get("/pqc/classical-handshake")
+
+    @task(3)
+    def hybrid(self):
+        self.client.get("/pqc/hybrid-handshake")
