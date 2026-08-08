@@ -1,12 +1,15 @@
 from fastapi import FastAPI
 from .routes import router as product_router
 import uvicorn
+from pqc import router as pqc_router
 
 app = FastAPI(title="E-commerce Site1 API", 
               description="API for E-commerce Site1", 
               version="1.0.0")
 
 app.include_router(product_router, prefix="/products-site-1")
+
+app.include_router(pqc_router,prefix="/pqc")
 
 @app.get("/health")
 async def health_check():

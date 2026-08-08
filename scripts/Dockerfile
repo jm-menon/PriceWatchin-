@@ -2,11 +2,17 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY scripts/requirements.txt .
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    ninja-build \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY scripts ./scripts
-COPY shared ./shared
+COPY . .
 
-CMD ["sh"]
+CMD ["python", "main.py"]
