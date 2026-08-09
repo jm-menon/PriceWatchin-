@@ -7,5 +7,3 @@ pydantic==2.11.7
 redis
 prometheus-client
 oqs
-liboqs-python
-cryptography

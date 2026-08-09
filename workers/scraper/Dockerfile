@@ -1,18 +1,15 @@
 FROM python:3.12-slim
 
-# Prevent Python from buffering stdout/stderr
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
 
-# Working directory inside the container
 WORKDIR /app
 
-# Install Python dependencies
-COPY requirements.txt .
+COPY workers/scraper/requirements.txt ./requirements.txt
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
+COPY workers/scraper ./scraper
+COPY shared ./shared
 
-# Run the scraper
-CMD ["python", "-m","main"]
+CMD ["python", "scraper/main.py"]

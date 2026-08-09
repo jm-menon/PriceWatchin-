@@ -17,12 +17,12 @@ venv/
 npm-debug.log*
 
 # Not needed by the root-context seed image
-frontend/
-locust/
-monitoring/
-tests/
-workers/
-simulators/
-docker-compose.yml
+#frontend/
+#locust/
+#monitoring/
+#tests/
+#workers/
+#simulators/
+#docker-compose.yml
 README.md
 db.sql
