@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from .routes import router as product_router
 import uvicorn
-from pqc import router as pqc_router
+from .pqc import router as pqc_router
 
 app = FastAPI(title="E-commerce Site1 API", 
               description="API for E-commerce Site1", 
