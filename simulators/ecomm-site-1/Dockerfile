@@ -1,16 +1,3 @@
-#FROM python:3.12-slim
-
-#WORKDIR /app
-
-#COPY requirements.txt .
-
-#RUN pip install -r requirements.txt
-
-#COPY simulators/ecomm-site-1/apps ./apps
-#COPY shared ./shared
-
-#CMD ["uvicorn","apps.main:app","--host","0.0.0.0","--port","8001"]
-
 FROM python:3.12-slim
 
 WORKDIR /app
