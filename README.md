@@ -21,6 +21,7 @@ output the best price for a product-> or rather give result in a sorted manner
 * Load testing using Locust
 * Monitoring using Prometheus and Grafana
 * Responsive frontend for interacting with tracker APIs
+* Post-quantum secured channel between scraper and vendor sites (hybrid X25519 + ML-KEM-768)
 
 ---
 
@@ -31,6 +32,12 @@ output the best price for a product-> or rather give result in a sorted manner
 * SQLAlchemy
 * PostgreSQL
 * Redis
+
+### Post-Quantum Cryptography
+* liboqs / oqs-python
+* ML-KEM-768 (key encapsulation)
+* X25519 (classical hybrid component)
+* ML-DSA (message signing)
 
 ### Infrastructure
 
@@ -54,48 +61,109 @@ output the best price for a product-> or rather give result in a sorted manner
 ---
 
 # Architecture
+                ┌──────────────────────┐
+                │     Frontend UI      │
+                └──────────┬───────────┘
+                           │
+                           ▼
+                  ┌─────────────────┐
+                  │   Tracker API   │
+                  │    (FastAPI)    │
+                  └────────┬────────┘
+                           │
+                 Cache Hit │
+                           ▼
+                      ┌────────┐
+                      │ Redis  │
+                      └────────┘
+                           │
+                 Cache Miss │
+                           ▼
+                 ┌─────────────────┐
+                 │   PostgreSQL    │
+                 └────────┬────────┘
+                          ▲
+                          │
+                 writes latest prices
+                          │
+                 ┌────────┴────────┐
+                 │     Scraper     │
+                 └────────┬────────┘
+                          │
+     ┌────────────┬────────┼────────┬────────────┐
+     ▼            ▼        ▼        ▼            ▼
+  Site 1       Site 2   Site 3   Site 4      Site 5
+  
+---
 
-```
-                    ┌──────────────────────┐
-                    │     Frontend UI      │
-                    └──────────┬───────────┘
-                               │
-                               ▼
-                      ┌─────────────────┐
-                      │   Tracker API   │
-                      │    (FastAPI)    │
-                      └────────┬────────┘
-                               │
-                     Cache Hit │
-                               ▼
-                          ┌────────┐
-                          │ Redis  │
-                          └────────┘
-                               │
-                     Cache Miss │
-                               ▼
-                     ┌─────────────────┐
-                     │   PostgreSQL    │
-                     └────────┬────────┘
-                              ▲
-                              │
-                     writes latest prices
-                              │
-                     ┌────────┴────────┐
-                     │     Scraper     │
-                     └────────┬────────┘
-                              │
-         ┌────────────┬────────┼────────┬────────────┐
-         ▼            ▼        ▼        ▼            ▼
-      Site 1       Site 2   Site 3   Site 4      Site 5
-```
+# PQC Security Layer
+
+The channel between the **Scraper** and each **Vendor Site** simulator is secured with a hybrid post-quantum key exchange, implemented via `liboqs`/`oqs-python` and shared out of the `shared/` module so both the scraper and each vendor service can use the same primitives.
+
+## Threat Model
+
+Prices are fetched over HTTP between two services that, in a real deployment, would sit on different trust boundaries (scraper infra vs. third-party vendor). The PQC layer protects that link against:
+* **Passive "harvest now, decrypt later" attacks** — a classical-only exchange (e.g. plain TLS with ECDHE) is at risk if traffic is recorded today and a sufficiently capable quantum computer breaks it later.
+* **Payload tampering** — price data written to Postgres is only as trustworthy as the channel it arrived on, so responses are signed, not just encrypted.
+
+## Key Exchange (Hybrid X25519 + ML-KEM-768)
+Scraper (client) Vendor Site (server)
+───────────────── ────────────────────
+
+Generate X25519 keypair
+Generate ML-KEM-768 keypair
+│
+│ ClientHello:
+│ { x25519_pub, mlkem_pub }
+├───────────────────────────────────────►
+│ 3. Encapsulate against
+│ mlkem_pub → (ct, ss_pq)
+│ 4. Generate ephemeral
+│ X25519 keypair, derive
+│ ss_classical via ECDH
+│
+│ ServerHello:
+│ { x25519_ephemeral_pub, mlkem_ct,
+│ signature = ML-DSA_sign(transcript) }
+◄───────────────────────────────────────┤
+│
+Decapsulate mlkem_ct → ss_pq
+Derive ss_classical via ECDH
+Verify ML-DSA signature over transcript
+│
+session_key = KDF(ss_classical || ss_pq)
+─────────────────────────────────────────
+Symmetric channel (AEAD) used for all
+subsequent price-fetch requests/responses
+
+
+**Why hybrid, not PQC-only:** combining X25519 with ML-KEM-768 means the channel stays secure as long as *either* the classical Diffie-Hellman assumption or the underlying lattice (Module-LWE) assumption holds — a standard hedge recommended during the PQC transition period, in case a weakness is later found in ML-KEM.
+
+**Session key derivation:** the classical shared secret (`ss_classical`) and the post-quantum shared secret (`ss_pq`) are concatenated and passed through a KDF to produce the symmetric session key used to encrypt the actual price payloads.
+
+## Signing Layer (ML-DSA)
+
+Each vendor site signs its handshake transcript (and can additionally sign individual price responses) with **ML-DSA**, giving the scraper a way to authenticate *which* vendor it's actually talking to and detect tampering in transit — independent of whether the transport-layer encryption is later broken.
+
+## Where it Sits in the Data Flow
+Scraper ──[PQC handshake: X25519 + ML-KEM-768]──► Vendor Site
+◄──[ML-DSA-signed, AEAD-encrypted price data]──┘
+Scraper ──[plain internal write]──► PostgreSQL
+
+
+
+The PQC layer only wraps the **scraper ↔ vendor** hop — internal traffic to Postgres/Redis/the Tracker API stays on the existing Docker-network trust boundary and isn't in scope for this layer.
+
+## Benchmarking
+
+Handshake and end-to-end request overhead introduced by the hybrid key exchange are measured the same way the rest of the platform is load-tested — via Locust, with latency and throughput surfaced through the existing Prometheus/Grafana stack rather than a separate tool.
 
 ---
 
 # Data Flow
 
 1. Five simulated e-commerce services expose product APIs.
-2. The scraper periodically fetches product prices from every vendor.
+2. The scraper periodically fetches product prices from every vendor over the PQC-secured channel described above.
 3. Normalized price data is stored in PostgreSQL.
 4. Whenever new prices are written:
 
@@ -138,28 +206,27 @@ Example endpoints tested:
 ---
 
 # Project Structure
-
-```
 PriceWatchin/
 │
 ├── frontend/
 ├── tracker_api/
 ├── workers/
-│   └── scraper/
+│ └── scraper/
 ├── simulators/
-│   ├── ecomm-site-1/
-│   ├── ecomm-site-2/
-│   ├── ecomm-site-3/
-│   ├── ecomm-site-4/
-│   └── ecomm-site-5/
+│ ├── ecomm-site-1/
+│ ├── ecomm-site-2/
+│ ├── ecomm-site-3/
+│ ├── ecomm-site-4/
+│ └── ecomm-site-5/
 ├── monitoring/
-│   ├── prometheus.yml
-│   └── grafana/
+│ ├── prometheus.yml
+│ └── grafana/
 ├── scripts/
 ├── shared/
+│ └── pqc/ # hybrid X25519 + ML-KEM-768 key exchange, ML-DSA signing
 ├── docker-compose.yml
 └── README.md
-```
+
 
 ---
 
@@ -241,21 +308,3 @@ Available services
 # License
 
 MIT License
-
-
-## Deploying to Render
-
-This repository includes `render.yaml` for a Blueprint deployment. It creates the
-public frontend, private tracker and vendor APIs, scraper worker, Render Postgres,
-and Render Key Value. The tracker performs a one-time database schema and seed
-initialization during its first deployment.
-
-Private services and background workers require paid Render plans. Review the
-Blueprint's selected plans before confirming deployment.
-
-## Frontend production build
-
-The frontend's production image is served by Nginx, not the Vite development
-server. Build and run it locally with `docker compose up --build frontend`, then
-open `http://localhost:5173`. The container exposes `/health` for deployment
-health checks.
