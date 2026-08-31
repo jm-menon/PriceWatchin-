@@ -206,25 +206,9 @@ Example endpoints tested:
 ---
 
 # Project Structure
-PriceWatchin/
-├── frontend/                  # React UI
-├── tracker_api/                # FastAPI service — price history & analytics endpoints
-├── workers/
-│   └── scraper/                 # Periodic price-scraping worker
-├── simulators/                 # Simulated e-commerce vendor sites
-│   ├── ecomm-site-1/
-│   ├── ecomm-site-2/
-│   ├── ecomm-site-3/
-│   ├── ecomm-site-4/
-│   └── ecomm-site-5/
-├── monitoring/
-│   ├── prometheus.yml
-│   └── grafana/
-├── scripts/
-├── shared/
-│   └── pqc/                     # Hybrid X25519 + ML-KEM-768 key exchange, ML-DSA signing
-├── docker-compose.yml
-└── README.md
+
+<img width="452" height="1016" alt="image" src="https://github.com/user-attachments/assets/d0b436c4-1da5-461f-b0b7-1bba8f683561" />
+
 
 
 ---
