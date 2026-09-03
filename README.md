@@ -107,61 +107,7 @@ Prices are fetched over HTTP between two services that, in a real deployment, wo
 * **Payload tampering** — price data written to Postgres (this data is directly fetched from the vendors) is only as trustworthy as the channel it arrived on, so responses are signed, not just encrypted.
 
 ## Key Exchange (Hybrid X25519 + ML-KEM-768)
-PQC Architecture
-                    SCRAPER
-                       │
-                       │
-              Generate keypairs
-                       │
-          ┌────────────┴────────────┐
-          │                         │
-     X25519 Keypair            ML-KEM-768 Keypair
-          │                         │
-          │ Public Key               │ Public Key
-          └────────────┬────────────┘
-                       │
-                       │ POST /pqc/pqc-handshake
-                       ▼
-              ┌───────────────────┐
-              │  Vendor Simulator │
-              └─────────┬─────────┘
-                        │
-             ┌──────────┴──────────┐
-             │                     │
-      Generate ephemeral      ML-KEM Encapsulation
-        X25519 keypair              │
-             │                      │
-       X25519 ECDH            KEM ciphertext
-             │                      │
-             └──────────┬───────────┘
-                        │
-                        │ Server returns
-                        │ X25519 public key
-                        │ + ML-KEM ciphertext
-                        ▼
-                    SCRAPER
-                        │
-              ┌─────────┴─────────┐
-              │                   │
-       X25519 ECDH          ML-KEM Decapsulation
-              │                   │
-              ▼                   ▼
-        ECDH Secret          KEM Secret
-              │                   │
-              └────────┬──────────┘
-                       │
-                 HKDF Derivation
-                       │
-                       ▼
-                Session Key
-                       │
-                       ▼
-                AES-256-GCM
-                       │
-                       │ Encrypted price
-                       │ request/response
-                       ▼
-              Vendor Simulator
+<img width="413" height="674" alt="image" src="https://github.com/user-attachments/assets/9e0bee8c-f78d-42eb-bff2-bd7881550626" />
 
 
 **Why hybrid, not PQC-only:** combining X25519 with ML-KEM-768 means the channel stays secure as long as *either* the classical Diffie-Hellman assumption or the underlying lattice (Module-LWE) assumption holds — a standard hedge recommended during the PQC transition period, in case a weakness is later found in ML-KEM.
