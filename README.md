@@ -103,38 +103,65 @@ The channel between the **Scraper** and each **Vendor Site** simulator is secure
 ## Threat Model
 
 Prices are fetched over HTTP between two services that, in a real deployment, would sit on different trust boundaries (scraper infra vs. third-party vendor). The PQC layer protects that link against:
-* **Passive "harvest now, decrypt later" attacks** — a classical-only exchange (e.g. plain TLS with ECDHE) is at risk if traffic is recorded today and a sufficiently capable quantum computer breaks it later.
-* **Payload tampering** — price data written to Postgres is only as trustworthy as the channel it arrived on, so responses are signed, not just encrypted.
+* **Passive "harvest now, decrypt later" attacks** — a classical-only exchange is at risk if traffic is recorded today and a sufficiently capable quantum computer breaks it later.
+* **Payload tampering** — price data written to Postgres (this data is directly fetched from the vendors) is only as trustworthy as the channel it arrived on, so responses are signed, not just encrypted.
 
 ## Key Exchange (Hybrid X25519 + ML-KEM-768)
-Scraper (client) Vendor Site (server)
-───────────────── ────────────────────
-
-Generate X25519 keypair
-Generate ML-KEM-768 keypair
-│
-│ ClientHello:
-│ { x25519_pub, mlkem_pub }
-├───────────────────────────────────────►
-│ 3. Encapsulate against
-│ mlkem_pub → (ct, ss_pq)
-│ 4. Generate ephemeral
-│ X25519 keypair, derive
-│ ss_classical via ECDH
-│
-│ ServerHello:
-│ { x25519_ephemeral_pub, mlkem_ct,
-│ signature = ML-DSA_sign(transcript) }
-◄───────────────────────────────────────┤
-│
-Decapsulate mlkem_ct → ss_pq
-Derive ss_classical via ECDH
-Verify ML-DSA signature over transcript
-│
-session_key = KDF(ss_classical || ss_pq)
-─────────────────────────────────────────
-Symmetric channel (AEAD) used for all
-subsequent price-fetch requests/responses
+PQC Architecture
+                    SCRAPER
+                       │
+                       │
+              Generate keypairs
+                       │
+          ┌────────────┴────────────┐
+          │                         │
+     X25519 Keypair            ML-KEM-768 Keypair
+          │                         │
+          │ Public Key               │ Public Key
+          └────────────┬────────────┘
+                       │
+                       │ POST /pqc/pqc-handshake
+                       ▼
+              ┌───────────────────┐
+              │  Vendor Simulator │
+              └─────────┬─────────┘
+                        │
+             ┌──────────┴──────────┐
+             │                     │
+      Generate ephemeral      ML-KEM Encapsulation
+        X25519 keypair              │
+             │                      │
+       X25519 ECDH            KEM ciphertext
+             │                      │
+             └──────────┬───────────┘
+                        │
+                        │ Server returns
+                        │ X25519 public key
+                        │ + ML-KEM ciphertext
+                        ▼
+                    SCRAPER
+                        │
+              ┌─────────┴─────────┐
+              │                   │
+       X25519 ECDH          ML-KEM Decapsulation
+              │                   │
+              ▼                   ▼
+        ECDH Secret          KEM Secret
+              │                   │
+              └────────┬──────────┘
+                       │
+                 HKDF Derivation
+                       │
+                       ▼
+                Session Key
+                       │
+                       ▼
+                AES-256-GCM
+                       │
+                       │ Encrypted price
+                       │ request/response
+                       ▼
+              Vendor Simulator
 
 
 **Why hybrid, not PQC-only:** combining X25519 with ML-KEM-768 means the channel stays secure as long as *either* the classical Diffie-Hellman assumption or the underlying lattice (Module-LWE) assumption holds — a standard hedge recommended during the PQC transition period, in case a weakness is later found in ML-KEM.
